@@ -25,25 +25,14 @@ DEFINES += QT_DEPRECATED_WARNINGS
 
 SOURCES += main.cpp\
         servicesim.cpp \
-    cashier.cpp \
     customer.cpp \
-    node.cpp \
-    queue.cpp \
-    serviceSimulator.cpp
+    customergen.cpp
 
 HEADERS  += servicesim.h \
-    cashier.hpp \
-    customer.hpp \
-    node.hpp \
-    queue.hpp \
-    serviceSimulator.hpp
+    customer.h \
+    customergen.h
 
 FORMS    += servicesim.ui
 
 DISTFILES += \
-    ServiceSim.pro.user \
-    customers - Copy.txt \
-    customers.txt \
-    Output.txt \
-    Pseudocode.txt \
-    makefile
+    customers - Copy.txt

@@ -1,47 +1,38 @@
-/*****************************************************************************/
-// Project 1 - Service Simulator
-/******************************************************************************
-    Author: Nathaniel Hoefer
-    Student ID: X529U639
-    Project: #1
-
+//==============================================================================
+// Service Simulator Project
+//==============================================================================
+/*  Author: Nathaniel Hoefer
+    Date Created: 12/27/2016
+    Last Edited: 12/27/2016
 */
 
-#include "customer.hpp"
-
-using namespace std;
-
-/*****************************************************************************/
-// Class Source Functions
-/*****************************************************************************/
+#include "customer.h"
 
 
-// CONSTRUCTORS ***************************************************************
+//==============================================================================
+// CONSTRUCTORS / DESTRUCTORS
+//==============================================================================
 
 
 Customer::Customer()
 {
-	mCustNum = 0;
-	mTimeStamp = 0;
-	mServiceTime = 0;
-	mWaitTime = 0;
+    mCustNum = 0;
+    mEnterTime = 0;
+    mServiceTime = 0;
+    mPurchaseAmount = 0;
+    mWaitTime = 0;
+    mTurnedAway = false;
 }
 
-
-Customer::Customer(int timeStamp, int serviceTime)
+Customer::Customer(int custNum, int enterTime,
+                   int serviceTime, double purchaseAmount)
 {
-	mCustNum = 0;
-	mTimeStamp = timeStamp;
-	mServiceTime = serviceTime;
-	mWaitTime = 0;
-}
-
-Customer::Customer(int custNum, int timeStamp, int serviceTime)
-{
-	mCustNum = custNum;
-	mTimeStamp = timeStamp;
-	mServiceTime = serviceTime;
-	mWaitTime = 0;
+    mCustNum = custNum;
+    mEnterTime = enterTime;
+    mServiceTime = serviceTime;
+    mPurchaseAmount = purchaseAmount;
+    mWaitTime = 0;
+    mTurnedAway = false;
 }
 
 
