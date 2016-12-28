@@ -80,9 +80,13 @@ vector<Customer*> CustomerGen::generateCustomers()
     do {
 
         // Generates the values
-        enterTime = currTime + (int)enterDist(enterGen);
+        do {
+        enterTime = (int)enterDist(enterGen);
         serviceTime = (int)serviceDist(serviceGen);
         purchaseAmount = purchaseDist(purchaseGen);
+        } while ( enterTime <= 0 || serviceTime <= 10 || purchaseAmount <= 0 );
+
+        enterTime += currTime;
 
         // Creates the customer as long as the time doesn't exceed closing
         if ( enterTime <= (mParameters.mCloseTime * 3600) ) {
@@ -115,12 +119,15 @@ vector<Customer*> CustomerGen::generateCustomers()
 void CustomerGen::printGraph(vector<Customer*> customers, int average,
                 int range, int increment)
 {
-    for ( int i = (average - ( range / 2 ));
-          i < (average - ( range / 2 )) + range;
-          i += 10 ) {
-        cout << left << i / 60 << "min ";
-        cout << setfill('0') << setw(2) << i % 60 << "sec " << ": ";
+    int min = (average - ( range / 2 ));
 
+    if ( min < 0 ) min = 0;
+
+    for ( int i = min; i < min + range; i += increment ) {
+        cout << left << i / 60 << "min ";
+        cout << right << setfill('0') << setw(2) << i % 60 << "sec " << ": ";
+
+        // Print if between current range
         for ( int j = 0; j < customers.size(); j++ ) {
             if ( customers[j]->serviceTime() >= i &&
                  customers[j]->serviceTime() < i + increment) {

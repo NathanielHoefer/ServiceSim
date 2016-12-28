@@ -81,23 +81,21 @@ public:
     void print() {
         int enterTime = mEnterTime;
 
-        cout << right << "Customer: "  << setfill('0') << setw(3) << mCustNum;
+        cout << left << setfill(' ') << setw(6) << mCustNum;
 
-
-        cout << " Enter Time: " << setfill('0') << setw(2) << enterTime / 3600 << ":";
+        cout << right << setfill('0') << setw(2) << enterTime / 3600 << ":";
         enterTime = enterTime % 3600;
         cout << setfill('0') << setw(2) << enterTime / 60 << ":";
         enterTime = enterTime % 60;
-        cout << setfill('0') << setw(2) << enterTime;
+        cout << setfill('0') << setw(2) << enterTime << "    ";
 
-        cout << " Service Time: " << mServiceTime / 60 << "min ";
-        cout << setfill('0') << setw(2) << mServiceTime % 60 << "sec ";
+        cout << mServiceTime / 60 << " min ";
+        cout << setfill('0') << setw(2) << mServiceTime % 60 <<
+             left << setfill(' ') << setw(7) << " sec";
 
-        cout << " Purchase Amount: $" << setprecision(3) <<
-                setfill('0') << setw(2) << mPurchaseAmount;
 
-        cout << " Wait Time: " << mWaitTime;
-        cout << " Turned Away: " << mTurnedAway << endl;
+        cout << "$" << setprecision(2) << fixed <<
+                setw(2) << mPurchaseAmount << endl;
     }
 };
 
