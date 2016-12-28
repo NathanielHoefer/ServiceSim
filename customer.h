@@ -14,11 +14,15 @@ Class Name: Customer
 #ifndef CUSTOMER_H
 #define CUSTOMER_H
 
+#include <iostream>
+#include <iomanip>
+#include <stdio.h>
+
 using namespace std;
 
 
 //==============================================================================
-// CUSTOMER CLASS
+// Customer Class
 //==============================================================================
 
 
@@ -32,16 +36,16 @@ private:
     // The order in which the customer enters
     int mCustNum;
 
-    // The minute that the customer enters the store
+    // The second that the customer enters the store
     int mEnterTime;
 
-    // The time taken for the cashier to service the customer
+    // The time taken for the cashier to service the customer in seconds
     int mServiceTime;
 
     // The amount of items the customer purchased
     double mPurchaseAmount;
 
-    // The time waiting in line to be processed.
+    // The time waiting in line to be processed int seconds.
     int mWaitTime;
 
     // Customer is turned away or not
@@ -71,6 +75,30 @@ public:
     void setPurchaseAmount( double amount ) { mPurchaseAmount = amount; }
     void setWaitTime( int waitTime ) { mWaitTime = waitTime; }
     void setTurnedAway( bool turnedAway ) { mTurnedAway = turnedAway; }
+
+// MEMBER FUNCTIONS ============================================================
+
+    void print() {
+        int enterTime = mEnterTime;
+
+        cout << right << "Customer: "  << setfill('0') << setw(3) << mCustNum;
+
+
+        cout << " Enter Time: " << setfill('0') << setw(2) << enterTime / 3600 << ":";
+        enterTime = enterTime % 3600;
+        cout << setfill('0') << setw(2) << enterTime / 60 << ":";
+        enterTime = enterTime % 60;
+        cout << setfill('0') << setw(2) << enterTime;
+
+        cout << " Service Time: " << mServiceTime / 60 << "min ";
+        cout << setfill('0') << setw(2) << mServiceTime % 60 << "sec ";
+
+        cout << " Purchase Amount: $" << setprecision(3) <<
+                setfill('0') << setw(2) << mPurchaseAmount;
+
+        cout << " Wait Time: " << mWaitTime;
+        cout << " Turned Away: " << mTurnedAway << endl;
+    }
 };
 
 #endif // CUSTOMER_H

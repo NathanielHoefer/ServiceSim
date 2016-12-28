@@ -1,4 +1,4 @@
-#include "servicesim.h"
+#include "serviceSim.h"
 #include "ui_servicesim.h"
 
 ServiceSim::ServiceSim(QWidget *parent) :

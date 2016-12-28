@@ -24,13 +24,14 @@ DEFINES += QT_DEPRECATED_WARNINGS
 
 
 SOURCES += main.cpp\
-        servicesim.cpp \
     customer.cpp \
-    customergen.cpp
+    customerGen.cpp \
+    serviceSim.cpp
 
-HEADERS  += servicesim.h \
+HEADERS  += \
     customer.h \
-    customergen.h
+    serviceSim.h \
+    customerGen.h
 
 FORMS    += servicesim.ui
 
