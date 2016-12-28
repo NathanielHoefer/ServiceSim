@@ -30,34 +30,25 @@ using namespace std;
 
 struct CustGenParms {
 
-    // The hour that the store opens (military time)
+    // The hours that the store opens and closes (military time)
     int mOpenTime;
-
-    // The hour that the store closes (military time)
     int mCloseTime;
 
-    // The average interval between customers entering line in seconds
+    // The average, minimum and maximum intervals between customers entering
+    // line in seconds
     int mCustFrequency;
+    int mCustFreqMin;
+    int mCustFreqMax;
 
-    // The interval in range of times in which customer enters store in seconds
-    // Ex: A customer can enter anywhere between 1-5 minutes after the previous
-    //      so the customer frequency range is 4 minutes so 240 seconds
-    int mCustFreqRange;
-
-    // The average service time of each customer in seconds
+    // The average, minimum and maximum service time of each customer in seconds
     int mAveServTime;
+    int mServTimeMin;
+    int mServTimeMax;
 
-    // The interval in range of times in which customer is serviced in seconds
-    // Ex: It can take anywhere from 3-6 minutes to service a customer so the
-    //      service time range is 3 minutes or 180 seconds
-    int mServTimeRange;
-
-    // The average purchase of any given customer
+    // The average, minimum and maximum purchase of any given customer
     double mAvePurchase;
-
-    // The interval in range of purchases between customers
-    // Ex: Customers purchases range from $1-$10 so the purchase range is $9
-    double mPurchaseRange;
+    double mPurchaseMin;
+    double mPurchaseMax;
 };
 
 
@@ -76,6 +67,20 @@ private:
     // The parameters for generating the customers
     CustGenParms mParameters;
 
+    // Most current generated customers
+    vector<Customer*> mGenCustomers;
+
+    /* Most current generated statistics of the 3 generated data. The stats are
+     * listed as columns to be printed out as a *-graph
+     *  [0] = Enter Times
+     *  [1] = Service Times
+     *  [2] = Purchase Amounts
+     */
+    vector < vector<int> > mStats;
+
+    // The number of generations performed
+    int mGenCount;
+
 public:
 
 // CONSTRUCTORS ================================================================
@@ -84,29 +89,44 @@ public:
 
     CustomerGen(CustGenParms parms);
 
+    ~CustomerGen();
+
 // MEMBER FUNCTIONS ============================================================
+
 
 /* Generates the customers based on the entered parameters
  *      Preconditions: The parameters are correctly entered
  *          - 0 <= OpenTime and CloseTime <= 24
  *          - OpenTime > CloseTime
- *          - CustomerFrequency, CustFreqRange, AveServTime, ServTimeRange,
- *              AvePurchase, PurchaseRange all > 0
+ *          - CustFreqMin < CustFrequency < CustFreqMax
+ *          - ServTimeMin < AveServTime < ServTimeMax
+ *          - PurchaseMin < avePurchase < PurchaseMax
  *      Postconditions: A list of customers is generated
  *      Returns: A vector of customers to be entered into the Service Engine
  */
-    vector<Customer*> generateCustomers();
+    const vector<Customer*> generateCustomers();
 
 
 //==============================================================================
 
 
-/* Prints out a graph to the console representing the entered parameters
- *      Preconditions: Customer list has already been generated
- *      Postconditions: Graph printed to console
+/* Prints out the statistics of the generated customers for better visualization
+ * of the data.
+ *      Preconditions: None
+ *      Postconditions: Statistics are printed
  */
-    void printGraph(vector<Customer*> customers, int average,
-                    int range, int increment);
+    void printStats();
+
+
+//==============================================================================
+
+private:
+
+/* Adds the element value to the specified graph for later statistics
+ *      Preconditions: Entered value is between min and max, index is 0-2
+ *      Postconditions: None
+ */
+    void addGraphElem(int index, double value);
 
 };
 

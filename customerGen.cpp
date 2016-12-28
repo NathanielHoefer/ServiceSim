@@ -22,6 +22,9 @@ CustomerGen::CustomerGen()
 {
     CustGenParms parms = { 0, 24, 300, 120, 300, 120, 5, 3 };
     mParameters = parms;
+    vector< vector<int> > temp(3, vector<int>(10, 0));
+    mStats = temp;
+    mGenCount = 0;
 }
 
 
@@ -31,8 +34,28 @@ CustomerGen::CustomerGen()
 CustomerGen::CustomerGen(CustGenParms parms)
 {
     mParameters = parms;
+
+    vector<int> custFreqTemp((parms.mCloseTime - parms.mOpenTime), 0);
+    vector<int> servTimeTemp(10, 0);
+    vector<int> purchTimeTemp(10, 0);
+
+    mStats.push_back(custFreqTemp);
+    mStats.push_back(servTimeTemp);
+    mStats.push_back(purchTimeTemp);
+
+    mGenCount = 0;
 }
 
+
+//==============================================================================
+
+
+CustomerGen::~CustomerGen()
+{
+    for ( int i = 0; i < mGenCustomers.size(); i++ ) {
+        delete mGenCustomers[i];
+    }
+}
 
 //==============================================================================
 // MEMBER FUNCTIONS
@@ -46,54 +69,94 @@ CustomerGen::CustomerGen(CustGenParms parms)
  *          - CustomerFrequency, CustFreqRange, AveServTime, ServTimeRange,
  *              AvePurchase, PurchaseRange all > 0
  *      Postconditions: A list of customers is generated
- *      Returns: A vector of customers to be entered into the Service Engine
  */
-vector<Customer*> CustomerGen::generateCustomers()
+const vector<Customer*> CustomerGen::generateCustomers()
 {
+    // Clear previous generation
+    if ( mGenCustomers.size() > 0 ) {
+        mGenCustomers.clear();
+    }
+
+// Customer Frequency Generator
+    int custFreq, custFreqMin, custFreqMax;
+    custFreq = mParameters.mCustFrequency;
+    custFreqMin = mParameters.mCustFreqMin;
+    custFreqMax = mParameters.mCustFreqMax;
+
+    int custFreqStd = (custFreqMax - custFreqMin) / 4;
+
+    default_random_engine enterGen(random_device{}());
+    normal_distribution<double> enterDist(custFreq, custFreqStd);
+
+
+// Service Time Generator
+    int aveServTime, servTimeMin, servTimeMax;
+    aveServTime = mParameters.mAveServTime;
+    servTimeMin = mParameters.mServTimeMin;
+    servTimeMax = mParameters.mServTimeMax;
+
+    int servTimeStd = (servTimeMax - servTimeMin) / 4;
+
+    default_random_engine serviceGen(random_device{}());
+    normal_distribution<double> serviceDist(aveServTime, servTimeStd);
+
+
+// Purchase Amount Generator
+    double avePurchase, purchaseMin, purchaseMax;
+    avePurchase = mParameters.mAvePurchase;
+    purchaseMin = mParameters.mPurchaseMin;
+    purchaseMax = mParameters.mPurchaseMax;
+
+    double purcRangStd = round((purchaseMax - purchaseMin) / 4);
+
+    default_random_engine purchaseGen(random_device{}());
+    normal_distribution<double> purchaseDist(avePurchase, purcRangStd);
+
+
+    // Declaring generation variables
     int custNum, enterTime, serviceTime, currTime;
     double purchaseAmount;
     bool isFinished = false;
 
-    vector<Customer*> customers;
     Customer *tempCustomer;
-
-    // Rough Standard Deviation estimates
-    int custFreqStd = mParameters.mCustFreqRange / 4;
-    int servTimeStd = mParameters.mServTimeRange / 4;
-    double purcRangStd = round(mParameters.mPurchaseRange / 4);
-
-    // Instanciating random generators utilizing normal ditributions
-    default_random_engine enterGen(random_device{}());
-    default_random_engine serviceGen(random_device{}());
-    default_random_engine purchaseGen(random_device{}());
-    normal_distribution<double> enterDist(mParameters.mCustFrequency,
-                                          custFreqStd);
-    normal_distribution<double> serviceDist(mParameters.mAveServTime,
-                                            servTimeStd);
-    normal_distribution<double> purchaseDist(mParameters.mAvePurchase,
-                                             purcRangStd);
 
     // Convert to seconds
     currTime = mParameters.mOpenTime * 3600;
     custNum = 0;
 
+
+// Customer Generation
     do {
 
-        // Generates the values
+        // Customer Frequency Generation
         do {
-        enterTime = (int)enterDist(enterGen);
-        serviceTime = (int)serviceDist(serviceGen);
-        purchaseAmount = purchaseDist(purchaseGen);
-        } while ( enterTime <= 0 || serviceTime <= 10 || purchaseAmount <= 0 );
-
+            enterTime = (int)enterDist(enterGen);
+        } while ( enterTime < custFreqMin ||
+                  enterTime > custFreqMax );
         enterTime += currTime;
+        addGraphElem(0, (double)enterTime);
+
+        // Service Time Generation
+        do {
+            serviceTime = (int)serviceDist(serviceGen);
+        } while ( serviceTime < servTimeMin ||
+                  serviceTime > servTimeMax );
+        addGraphElem(1, (double)serviceTime);
+
+        // Purchase Amount Generation
+        do {
+            purchaseAmount = purchaseDist(purchaseGen);
+        } while ( purchaseAmount < purchaseMin ||
+                  purchaseAmount > purchaseMax );
+        addGraphElem(2, purchaseAmount);
+
 
         // Creates the customer as long as the time doesn't exceed closing
         if ( enterTime <= (mParameters.mCloseTime * 3600) ) {
             tempCustomer = new Customer(custNum, enterTime,
                                         serviceTime, purchaseAmount);
 
-            customers.push_back(tempCustomer);
+            mGenCustomers.push_back(tempCustomer);
 
             currTime = enterTime;
             custNum++;
@@ -101,40 +164,204 @@ vector<Customer*> CustomerGen::generateCustomers()
             isFinished = true;
         }
 
+        mGenCount++;
+
     } while ( !isFinished );
 
-    return customers;
+    return mGenCustomers;
 }
 
 
 //==============================================================================
 
 
-/* Prints out a graph to the console representing the entered parameters
- *      Preconditions: Customer list has already been generated
- *          state 1 = Service Time
- *          state 2 = Purchase Amount
- *      Postconditions: Graph printed to console
+/* Prints out the statistics of the generated customers for better visualization
+ * of the data.
+ *      Preconditions: None
+ *      Postconditions: Statistics are printed
  */
-void CustomerGen::printGraph(vector<Customer*> customers, int average,
-                int range, int increment)
-{
-    int min = (average - ( range / 2 ));
+void CustomerGen::printStats() {
 
-    if ( min < 0 ) min = 0;
+    cout << "===========================================" << endl;
+    cout << "Customer Generation Statistics" << endl;
+    cout << "===========================================\n" << endl;
 
-    for ( int i = min; i < min + range; i += increment ) {
-        cout << left << i / 60 << "min ";
-        cout << right << setfill('0') << setw(2) << i % 60 << "sec " << ": ";
+    // Print customer info labels
+    cout << left << setw(6) << "Cust" << setw(12) << "Enter Time" <<
+            setw(15) << "Service Time" << setw(10) << "Amount" << endl;
 
-        // Print if between current range
-        for ( int j = 0; j < customers.size(); j++ ) {
-            if ( customers[j]->serviceTime() >= i &&
-                 customers[j]->serviceTime() < i + increment) {
-                cout << "*";
+    cout << left << setw(6) << "----" << setw(12) << "----------" <<
+            setw(15) << "-------------" << setw(10) << "----------" << endl;
+
+    // Format and print out individual customer info
+    for ( int i = 0; i < mGenCustomers.size(); i++ ) {
+        int custNum = mGenCustomers[i]->custNum();
+        int enterTime = mGenCustomers[i]->enterTime();
+        int serviceTime = mGenCustomers[i]->serviceTime();
+        double purchaseAmount = mGenCustomers[i]->purchaseAmount();
+
+        cout << left << setfill(' ') << setw(6) << custNum;
+
+        cout << right << setfill('0') << setw(2) << enterTime / 3600 << ":";
+        enterTime = enterTime % 3600;
+        cout << setfill('0') << setw(2) << enterTime / 60 << ":";
+        enterTime = enterTime % 60;
+        cout << setfill('0') << setw(2) << enterTime << "    ";
+
+        cout << serviceTime / 60 << " min ";
+        cout << setfill('0') << setw(2) << serviceTime % 60 <<
+             left << setfill(' ') << setw(7) << " sec";
+
+        cout << "$" << setprecision(2) << fixed <<
+                setw(2) << purchaseAmount << endl;
+    }
+
+
+    // Print the three graphs
+    for ( int i = 0; i < 3; i++ ) {
+
+        int graphIndex = 0;
+        int increment;
+        switch (i) {
+        case 0:
+            cout << "\nCustomers During Workday" << endl;
+            cout << "------------------------" << endl;
+
+            int openTime, closeTime;
+            openTime = mParameters.mOpenTime;
+            closeTime = mParameters.mCloseTime;
+            increment = 1;
+
+            for ( int j = openTime; j < closeTime; j += increment ) {
+
+                if ( j <= 12 ) {
+                    cout << right << setw(2) << j << " am : ";
+                } else {
+                    cout << right << setw(2) << j % 12 << " pm : ";
+                }
+                for ( int k = 0; k < mStats[i][graphIndex]; k++ ) {
+                    cout << "*";
+                }
+                cout << endl;
+                graphIndex++;
             }
-        }
 
-        cout << endl;
+            graphIndex = 0;
+            break;
+        case 1:
+            cout << "\nService Times" << endl;
+            cout << "------------------------" << endl;
+
+            int servTimeMin, servTimeMax;
+            servTimeMin = mParameters.mServTimeMin;
+            servTimeMax = mParameters.mServTimeMax;
+            increment = (servTimeMax - servTimeMin) / 10;
+
+            for ( int j = servTimeMin; j < servTimeMax; j += increment ) {
+
+                cout << left << j / 60 << "min ";
+                cout << right << setfill('0') << setw(2) <<
+                        j % 60 << "sec " << ": ";
+                for ( int k = 0; k < mStats[i][graphIndex]; k++ ) {
+                    cout << "*";
+                }
+                cout << endl;
+                graphIndex++;
+            }
+
+            graphIndex = 0;
+            break;
+        case 2:
+            cout << "\nPurchase Amounts" << endl;
+            cout << "------------------------" << endl;
+
+            double purchMin, purchMax;
+            purchMin = mParameters.mPurchaseMin;
+            purchMax = mParameters.mPurchaseMax;
+
+            double doubInc = (purchMax - purchMin) / 10;
+
+            for ( double j = purchMin; j < purchMax; j += doubInc ) {
+
+                cout << left << fixed << setfill(' ') << setprecision(2) <<
+                        "$ " << setw(6) << j << " : ";
+                for ( int k = 0; k < mStats[i][graphIndex]; k++ ) {
+                    cout << "*";
+                }
+                cout << endl;
+                graphIndex++;
+            }
+            break;
+        }
+    }
+}
+
+
+//==============================================================================
+
+
+/* Adds the element value to the specified graph for later statistics
+ *      Preconditions: Entered value is between min and max, index is 0-2
+ *      Postconditions: None
+ */
+void CustomerGen::addGraphElem(int index, double value)
+{
+    int increment, graphIndex;
+
+    switch (index) {
+
+    // Enter Times
+    case 0:
+        int openTime, closeTime;
+        openTime = mParameters.mOpenTime;
+        closeTime = mParameters.mCloseTime;
+        increment = 1;
+        graphIndex = 0;
+        value /= 3600;
+
+        for ( int i = openTime; i < closeTime; i += increment ) {
+            if ( value >= i && value < i + increment ) {
+                mStats[index][graphIndex]++;
+                i = closeTime;
+            }
+            graphIndex++;
+        }
+        break;
+
+    // Service Times
+    case 1:
+        int servTimeMin, servTimeMax;
+        servTimeMin = mParameters.mServTimeMin;
+        servTimeMax = mParameters.mServTimeMax;
+
+        increment = (servTimeMax - servTimeMin) / 10;
+        graphIndex = 0;
+
+        for ( int i = servTimeMin; i < servTimeMax; i += increment ) {
+            if ( value >= i && value < i + increment ) {
+                mStats[index][graphIndex]++;
+                i = servTimeMax;
+            }
+            graphIndex++;
+        }
+        break;
+
+    // Purchase Amounts
+    case 2:
+        double purchMin, purchMax;
+        purchMin = mParameters.mPurchaseMin;
+        purchMax = mParameters.mPurchaseMax;
+
+        double doubInc = (purchMax - purchMin) / 10;
+        graphIndex = 0;
+
+        for ( double i = purchMin; i < purchMax; i += doubInc ) {
+            if ( value >= i && value < i + doubInc ) {
+                mStats[index][graphIndex]++;
+                i = purchMax;
+            }
+            graphIndex++;
+        }
+        break;
     }
 }
