@@ -26,12 +26,14 @@ DEFINES += QT_DEPRECATED_WARNINGS
 SOURCES += main.cpp\
     customer.cpp \
     customerGen.cpp \
-    serviceSim.cpp
+    serviceSim.cpp \
+    driverTesting.cpp
 
 HEADERS  += \
     customer.h \
     serviceSim.h \
-    customerGen.h
+    customerGen.h \
+    driverTesting.h
 
 FORMS    += servicesim.ui
 
