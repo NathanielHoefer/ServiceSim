@@ -34,11 +34,20 @@ struct CustGenParms {
     int mOpenTime;
     int mCloseTime;
 
+    // The hours that are busy
+    vector<int> mBusyHours;
+
     // The average, minimum and maximum intervals between customers entering
     // line in seconds
     int mCustFrequency;
     int mCustFreqMin;
     int mCustFreqMax;
+
+    // The average, minimum and maximum intervals between customers entering
+    // line during busy part of day
+    int mBCustFrequency;
+    int mBCustFreqMin;
+    int mBCustFreqMax;
 
     // The average, minimum and maximum service time of each customer in seconds
     int mAveServTime;

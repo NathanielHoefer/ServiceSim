@@ -20,7 +20,14 @@ using namespace std;
 
 CustomerGen::CustomerGen()
 {
-    CustGenParms parms = { 0, 24, 300, 120, 300, 120, 5, 3 };
+    vector<int> busyHours;      // Busy hours: 12-1, 5-6
+    busyHours.push_back(12);
+    busyHours.push_back(13);
+    busyHours.push_back(17);
+    busyHours.push_back(18);
+
+    CustGenParms parms = { 11, 22, busyHours, 600, 180, 1800,
+                           60, 30, 120, 300, 150, 600, 8, 2, 30 };
     mParameters = parms;
     vector< vector<int> > temp(3, vector<int>(10, 0));
     mStats = temp;
@@ -83,10 +90,17 @@ const vector<Customer*> CustomerGen::generateCustomers()
     custFreqMin = mParameters.mCustFreqMin;
     custFreqMax = mParameters.mCustFreqMax;
 
+    int custBusyFreq, custBusyFreqMin, custBusyFreqMax;
+    custBusyFreq = mParameters.mBCustFrequency;
+    custBusyFreqMin = mParameters.mBCustFreqMin;
+    custBusyFreqMax = mParameters.mBCustFreqMax;
+
     int custFreqStd = (custFreqMax - custFreqMin) / 4;
+    int custBusyFreqStd = (custBusyFreqMax - custBusyFreqMin) / 4;
 
     default_random_engine enterGen(random_device{}());
     normal_distribution<double> enterDist(custFreq, custFreqStd);
+    normal_distribution<double> enterBusyDist(custBusyFreq, custBusyFreqStd);
 
 
 // Service Time Generator
@@ -119,6 +133,7 @@ const vector<Customer*> CustomerGen::generateCustomers()
     bool isFinished = false;
 
     Customer *tempCustomer;
+    bool busyHour;
 
     // Convert to seconds
     currTime = mParameters.mOpenTime * 3600;
@@ -128,11 +143,30 @@ const vector<Customer*> CustomerGen::generateCustomers()
 // Customer Generation
     do {
 
-        // Customer Frequency Generation
-        do {
-            enterTime = (int)enterDist(enterGen);
-        } while ( enterTime < custFreqMin ||
-                  enterTime > custFreqMax );
+// Customer Frequency Generation
+
+        // If current time is designated busy hour, set flag
+        for ( int i = 0; i < mParameters.mBusyHours.size(); i++ ) {
+            if ( currTime / 3600 == mParameters.mBusyHours[i] ) {
+                busyHour = true;
+                i = 25;
+            } else {
+                busyHour = false;
+            }
+        }
+
+        // Use busy distribution if busy hour
+        if ( busyHour ) {
+            do {
+                enterTime = (int)enterBusyDist(enterGen);
+            } while ( enterTime < custBusyFreqMin ||
+                      enterTime > custBusyFreqMax );
+        } else {
+            do {
+                enterTime = (int)enterDist(enterGen);
+            } while ( enterTime < custFreqMin ||
+                      enterTime > custFreqMax );
+        }
         enterTime += currTime;
         addGraphElem(0, (double)enterTime);
 
