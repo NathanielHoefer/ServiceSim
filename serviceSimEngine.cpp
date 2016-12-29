@@ -38,8 +38,10 @@ ServiceSimEngine::ServiceSimEngine()
 
 ServiceSimEngine::ServiceSimEngine(CustomerParms parms)
 {
-    vector<Cashier*> temp(parms.mNumberOfLines);
-    mCashier = temp;
+    for ( int i = 0; i < parms.mNumberOfLines; i++ ) {
+        Cashier *temp = new Cashier();
+        mCashier.push_back(temp);
+    }
 
     mParameters = parms;
 
@@ -70,12 +72,25 @@ ServiceSimEngine::ServiceSimEngine(CustomerParms parms)
  */
 void ServiceSimEngine::run()
 {
+    clock_t tStart = clock();
+
     CustomerGen custGenerator(mParameters);
     mEnteringCustomers = custGenerator.generateCustomers();
     custGenerator.printStats();
 
+//    cout << mCashier.size() << endl;
+
+//    Customer cust1(0, 0, 5, 5);
+//    Customer cust2(0, 1, 5, 5);
+//    Customer cust3(0, 2, 3, 5);
+
+//    mEnteringCustomers.push(&cust1);
+//    mEnteringCustomers.push(&cust2);
+//    mEnteringCustomers.push(&cust3);
+
     int currentTime, openTime, closeTime;
     openTime = mParameters.mOpenTime * 3600;
+//    closeTime = 10;
     closeTime = mParameters.mCloseTime * 3600;
 
     // Loop that processes every second of the workday
@@ -115,58 +130,55 @@ void ServiceSimEngine::run()
 
 
         // Add next customer to a service line
-        Customer *customer = mEnteringCustomers.front();
-        if ( customer->enterTime() == currentTime ) {
-            mEnteringCustomers.pop();
+        if ( !mEnteringCustomers.empty() ) {
+            Customer *customer = mEnteringCustomers.front();
+            if ( customer->enterTime() == currentTime ) {
+                mEnteringCustomers.pop();
 
-            Cashier *cashier;
-            bool lineFound = false;
-            vector<int> lineCount(mParameters.mNumberOfLines);
+                Cashier *cashier;
+                bool lineFound = false;
+                vector<int> lineCount(mParameters.mNumberOfLines);
 
-            for ( int i = 0; i < mParameters.mNumberOfLines; i++ ) {
-                cashier = mCashier[i];
+                for ( int i = 0; i < mParameters.mNumberOfLines; i++ ) {
+                    cashier = mCashier[i];
 
-                // Go to first line available
-                if ( cashier->isAvailable() ) {
-                    int waitTime = currentTime - customer->enterTime();
-                    customer->setWaitTime(waitTime);
-                    customer->setTurnedAway(false);
+                    // Go to first line available
+                    if ( cashier->isAvailable() ) {
+                        int waitTime = currentTime - customer->enterTime();
+                        customer->setWaitTime(waitTime);
+                        customer->setTurnedAway(false);
 
-                    cashier->setProcessTime(customer->serviceTime());
+                        cashier->setProcessTime(customer->serviceTime());
+                        cashier->setAvailable(false);
 
-                    mCustsServiced.push_back(customer);
+                        mCustsServiced.push_back(customer);
 
-                    i = mParameters.mNumberOfLines;
-                    lineFound = true;
-                } else {
-                    lineCount[i] = cashier->lineSize();
-                }
-            }
-
-            // Find the smallest line
-            if ( !lineFound ) {
-                Cashier *smallestLine = mCashier[0];
-                int smallLineSize = mCashier[0]->lineSize();
-
-                for ( int i = 1; i < mParameters.mNumberOfLines; i++ ) {
-                    if ( mCashier[i]->lineSize() < smallestLine->lineSize() ) {
-                        smallestLine = mCashier[i];
-                        smallLineSize = mCashier[i]->lineSize();
+                        i = mParameters.mNumberOfLines;
+                        lineFound = true;
+                    } else {
+                        lineCount[i] = cashier->lineSize();
                     }
                 }
 
-                if ( smallLineSize < mParameters.mMaxLineCust ) {
-                    int waitTime = currentTime - customer->enterTime();
-                    customer->setWaitTime(waitTime);
-                    customer->setTurnedAway(false);
+                // Find the smallest line
+                if ( !lineFound ) {
+                    Cashier *smallestLine = mCashier[0];
+                    int smallLineSize = mCashier[0]->lineSize();
 
-                    smallestLine->setProcessTime(customer->serviceTime());
+                    for ( int i = 1; i < mParameters.mNumberOfLines; i++ ) {
+                        if ( mCashier[i]->lineSize() < smallestLine->lineSize() ) {
+                            smallestLine = mCashier[i];
+                            smallLineSize = mCashier[i]->lineSize();
+                        }
+                    }
 
-                    mCustsServiced.push_back(customer);
-                } else {
-                    // Customer is turned away because all lines are full
-                    customer->setTurnedAway(true);
-                    mCustsServiced.push_back(customer);
+                    if ( smallLineSize < mParameters.mMaxLineCust ) {
+                        smallestLine->addCustomer(customer);
+                    } else {
+                        // Customer is turned away because all lines are full
+                        customer->setTurnedAway(true);
+                        mCustsTurnedAway.push_back(customer);
+                    }
                 }
             }
         }
@@ -174,6 +186,9 @@ void ServiceSimEngine::run()
 
     compileResults();
     print();
+
+    cout << "\nTime taken: " << fixed << setprecision(3) <<
+            (double)(clock() - tStart)/CLOCKS_PER_SEC << " seconds" << endl;
 }
 
 
@@ -190,22 +205,24 @@ void ServiceSimEngine::print() {
     cout << "Simulation Results" << endl;
     cout << "===========================================\n" << endl;
 
-    cout << setw(35) << "Number of Customers Serviced: " <<
+    cout << left << setw(25) << "Customers Serviced: " <<
             mNumServiced << endl;
-    cout << setw(35) << "Number of Customers Turned Away: " <<
+    cout << setw(25) << "Customers Turned Away: " <<
             mNumTurnedAway << endl << endl;
 
-    cout << setw(35) << "Total Sales Amount: " <<
+    cout << setw(25) << "Total Sales Amount: " <<
             fixed << setprecision(2) << "$ " << mTotalSales << endl;
-    cout << setw(35) << "Total Sales Lost: " <<
+    cout << setw(25) << "Total Sales Lost: " <<
             fixed << setprecision(2) << "$ " << mSalesLost << endl << endl;
 
-    cout << setw(35) << "Total Wait Time: " <<
-            mTotWaitTime << endl;
-    cout << setw(35) << "Average Wait Time: " <<
-            mAveWaitTime << endl << endl;
+    cout << setw(25) << "Total Wait Time: " <<
+            mTotWaitTime / 60 << " min " <<
+            mTotWaitTime % 60 << " sec " << endl;
+    cout << setw(25) << "Average Wait Time: " <<
+            mAveWaitTime / 60 << " min " <<
+            mAveWaitTime % 60 << " sec " << endl << endl;
 
-    cout << setw(35) << "Dissatisfied Customers: " <<
+    cout << setw(25) << "Dissatisfied Customers: " <<
             mDissatisfiedCount << endl;
 }
 

@@ -16,8 +16,8 @@ void Driver::custGenTesting()
     int openTime =      11;     // 11am
     int closeTime =     22;     // 10pm
 
-    int numOfLines =    3;
-    int maxLineCusts =  6;
+    int numOfLines =    1;
+    int maxLineCusts =  1;
 
     int custFreq =      600;     // 10 min
     int custFreqMin =   180;     // 3 min
@@ -69,8 +69,8 @@ void Driver::serviceSimEngineTesting()
     int openTime =      11;     // 11am
     int closeTime =     22;     // 10pm
 
-    int numOfLines =    3;
-    int maxLineCusts =  6;
+    int numOfLines =    2;
+    int maxLineCusts =  4;
 
     int custFreq =      600;     // 10 min
     int custFreqMin =   180;     // 3 min
@@ -82,9 +82,9 @@ void Driver::serviceSimEngineTesting()
     busyHours.push_back(17);
     busyHours.push_back(18);
 
-    int custBFreq =     120;    // 1 min
+    int custBFreq =     60;    // 1 min
     int custBFreqMin =  30;     // 30 sec
-    int custBFreqMax =  300;    // 2 min
+    int custBFreqMax =  120;    // 2 min
 
     int aveServTime =   300;    // 5min
     int servTimeMin =   150;    // 2.5 min

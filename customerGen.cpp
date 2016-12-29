@@ -357,6 +357,7 @@ void CustomerGen::printStats()
                 cout << endl;
                 graphIndex++;
             }
+            cout << endl;
             break;
         }
     }
