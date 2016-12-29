@@ -26,8 +26,8 @@ CustomerGen::CustomerGen()
     busyHours.push_back(17);
     busyHours.push_back(18);
 
-    CustGenParms parms = { 11, 22, busyHours, 600, 180, 1800,
-                           60, 30, 120, 300, 150, 600, 8, 2, 30 };
+    CustomerParms parms = { 11, 22, 1, 6, busyHours, 600, 180, 1800,
+                           60, 30, 120, 300, 150, 600, 8, 2, 30, 300 };
     mParameters = parms;
     vector< vector<int> > temp(3, vector<int>(10, 0));
     mStats = temp;
@@ -38,7 +38,7 @@ CustomerGen::CustomerGen()
 //==============================================================================
 
 
-CustomerGen::CustomerGen(CustGenParms parms)
+CustomerGen::CustomerGen(CustomerParms parms)
 {
     mParameters = parms;
 
@@ -77,11 +77,11 @@ CustomerGen::~CustomerGen()
  *              AvePurchase, PurchaseRange all > 0
  *      Postconditions: A list of customers is generated
  */
-const vector<Customer*> CustomerGen::generateCustomers()
+queue<Customer*> CustomerGen::generateCustomers()
 {
     // Clear previous generation
     if ( mGenCustomers.size() > 0 ) {
-        mGenCustomers.clear();
+        reset();
     }
 
 // Customer Frequency Generator
@@ -202,7 +202,38 @@ const vector<Customer*> CustomerGen::generateCustomers()
 
     } while ( !isFinished );
 
-    return mGenCustomers;
+    // Add all of the customers to a queue
+    queue<Customer*> custQueue;
+    for ( int i = 0; i < mGenCustomers.size(); i++ ) {
+        custQueue.push(mGenCustomers[i]);
+    }
+
+    return custQueue;
+}
+
+
+//==============================================================================
+
+
+/* Resets the state of the customer generator leaving the parameters and
+ *  generation count
+ *      Preconditions: None
+ *      Postconditions: Customers and statistics are erased
+ */
+void CustomerGen::reset()
+{
+    for ( int i = 0; i < mGenCustomers.size(); i++ ) {
+        Customer *temp = mGenCustomers[i];
+        delete temp;
+    }
+
+    mGenCustomers.clear();
+
+    for ( int i = 0; i < mStats.size(); i++ ) {
+        for ( int j = 0; j < mStats[i].size(); j++ ) {
+            mStats[i][j] = 0;
+        }
+    }
 }
 
 
@@ -214,7 +245,8 @@ const vector<Customer*> CustomerGen::generateCustomers()
  *      Preconditions: None
  *      Postconditions: Statistics are printed
  */
-void CustomerGen::printStats() {
+void CustomerGen::printStats()
+{
 
     cout << "===========================================" << endl;
     cout << "Customer Generation Statistics" << endl;

@@ -1,7 +1,8 @@
 #ifndef DRIVERTESTING_H
 #define DRIVERTESTING_H
 
-#include "customerGen.h"
+#include "serviceSimEngine.h"
+#include "customerParms.h"
 
 using namespace std;
 
@@ -12,6 +13,8 @@ public:
     Driver();
 
     void custGenTesting();
+
+    void serviceSimEngineTesting();
 };
 
 

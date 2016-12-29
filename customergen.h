@@ -5,9 +5,6 @@
     Date Created: 12/27/2016
     Last Edited: 12/27/2016
 
-Structure Name: CustGenParms
-    Structure containing parameters for the customer generator
-
 Class Name: CustomerGen
     Generates a random list of customers based on specified parameters that will
     be fed into the ServiceEngine
@@ -17,48 +14,12 @@ Class Name: CustomerGen
 #ifndef CUSTOMERGEN_H
 #define CUSTOMERGEN_H
 
+#include "customerParms.h"
 #include "customer.h"
 #include <vector>
+#include <queue>
 
 using namespace std;
-
-
-//==============================================================================
-// CustGenParms Structure
-//==============================================================================
-
-
-struct CustGenParms {
-
-    // The hours that the store opens and closes (military time)
-    int mOpenTime;
-    int mCloseTime;
-
-    // The hours that are busy
-    vector<int> mBusyHours;
-
-    // The average, minimum and maximum intervals between customers entering
-    // line in seconds
-    int mCustFrequency;
-    int mCustFreqMin;
-    int mCustFreqMax;
-
-    // The average, minimum and maximum intervals between customers entering
-    // line during busy part of day
-    int mBCustFrequency;
-    int mBCustFreqMin;
-    int mBCustFreqMax;
-
-    // The average, minimum and maximum service time of each customer in seconds
-    int mAveServTime;
-    int mServTimeMin;
-    int mServTimeMax;
-
-    // The average, minimum and maximum purchase of any given customer
-    double mAvePurchase;
-    double mPurchaseMin;
-    double mPurchaseMax;
-};
 
 
 //==============================================================================
@@ -74,7 +35,7 @@ private:
 // MEMBER VARIABLES ============================================================
 
     // The parameters for generating the customers
-    CustGenParms mParameters;
+    CustomerParms mParameters;
 
     // Most current generated customers
     vector<Customer*> mGenCustomers;
@@ -96,7 +57,7 @@ public:
 
     CustomerGen();
 
-    CustomerGen(CustGenParms parms);
+    CustomerGen(CustomerParms parms);
 
     ~CustomerGen();
 
@@ -113,7 +74,18 @@ public:
  *      Postconditions: A list of customers is generated
  *      Returns: A vector of customers to be entered into the Service Engine
  */
-    const vector<Customer*> generateCustomers();
+    queue<Customer*> generateCustomers();
+
+
+//==============================================================================
+
+
+/* Resets the state of the customer generator leaving the parameters and
+ *  generation count
+ *      Preconditions: None
+ *      Postconditions: Customers and statistics are erased
+ */
+    void reset();
 
 
 //==============================================================================

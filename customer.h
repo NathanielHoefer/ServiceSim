@@ -76,27 +76,6 @@ public:
     void setWaitTime( int waitTime ) { mWaitTime = waitTime; }
     void setTurnedAway( bool turnedAway ) { mTurnedAway = turnedAway; }
 
-// MEMBER FUNCTIONS ============================================================
-
-    void print() {
-        int enterTime = mEnterTime;
-
-        cout << left << setfill(' ') << setw(6) << mCustNum;
-
-        cout << right << setfill('0') << setw(2) << enterTime / 3600 << ":";
-        enterTime = enterTime % 3600;
-        cout << setfill('0') << setw(2) << enterTime / 60 << ":";
-        enterTime = enterTime % 60;
-        cout << setfill('0') << setw(2) << enterTime << "    ";
-
-        cout << mServiceTime / 60 << " min ";
-        cout << setfill('0') << setw(2) << mServiceTime % 60 <<
-             left << setfill(' ') << setw(7) << " sec";
-
-
-        cout << "$" << setprecision(2) << fixed <<
-                setw(2) << mPurchaseAmount << endl;
-    }
 };
 
 #endif // CUSTOMER_H

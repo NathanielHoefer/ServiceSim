@@ -15,7 +15,7 @@ int main(int argc, char *argv[])
 
     Driver testing;
 
-    testing.custGenTesting();
+    testing.serviceSimEngineTesting();
 
     return 0;
 }

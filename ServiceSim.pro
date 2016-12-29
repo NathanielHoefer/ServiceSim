@@ -27,13 +27,18 @@ SOURCES += main.cpp\
     customer.cpp \
     customerGen.cpp \
     serviceSim.cpp \
-    driverTesting.cpp
+    driverTesting.cpp \
+    cashier.cpp \
+    serviceSimEngine.cpp
 
 HEADERS  += \
     customer.h \
     serviceSim.h \
     customerGen.h \
-    driverTesting.h
+    driverTesting.h \
+    cashier.h \
+    serviceSimEngine.h \
+    customerParms.h
 
 FORMS    += servicesim.ui
 
